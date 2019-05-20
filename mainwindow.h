@@ -26,17 +26,18 @@ public:
 private slots:
     void on_pushButton_PrepareAll_clicked();
 
-    void on_horizontalSlider_synergy_actionTriggered(int action);
+    void on_horizontalSlider_synergy_actionTriggered();
 
     //extra slots
     void processOutput();
     void dataReadyOutput();
 
-    void on_horizontalSlider_deckType_actionTriggered(int action);
+    void on_horizontalSlider_deckType_actionTriggered();
 
     void on_pushButton_findDeck_clicked();
 
-    void on_pushButton_useCardsFile_clicked();
+    void on_pushButton_updateMyCollection_clicked();
+    void processImportOutput();
 
     void on_pushButton_moreOptions_clicked();
 
