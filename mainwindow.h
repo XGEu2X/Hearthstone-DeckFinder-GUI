@@ -2,12 +2,12 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-//#include <QWebEngineView>
 #include <QProcess>
 #include <QString>
 #include <QDebug>
 #include <QMessageBox>
 #include <QDebug>
+#include <QRandomGenerator>
 
 #include "defaultparameters.h"
 #include "filemanagment.h"
@@ -32,14 +32,10 @@ private slots:
     void processOutput();
     void dataReadyOutput();
 
-    void on_horizontalSlider_deckType_actionTriggered();
-
     void on_pushButton_findDeck_clicked();
 
     void on_pushButton_updateMyCollection_clicked();
     void processImportOutput();
-
-    void on_pushButton_moreOptions_clicked();
 
 private:
     //variables
@@ -63,11 +59,11 @@ private:
 
     //methods
     void prepare_GUI();
-    double getDeckTypeValue(int v);
     bool is_data_ready();
+    double random_p();
+    void PrepareAll(std::string, int, int);
 
     Ui::MainWindow *ui;
 };
-
 
 #endif // MAINWINDOW_H

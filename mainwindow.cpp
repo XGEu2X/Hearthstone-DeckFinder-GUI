@@ -12,7 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
     statsResource = STATS_RESOURCE.c_str();
     minMatchValidRatio = QString::number(MIN_MATCH_VALID_RATIO);
     tupleNumber = ui -> horizontalSlider_synergy -> sliderPosition() + 2;
-    p = getDeckTypeValue(ui -> horizontalSlider_deckType ->sliderPosition());
+    //p = getDeckTypeValue(ui -> horizontalSlider_deckType ->sliderPosition());
     numOfGenerations = QString::number(NUM_OF_GENERATIONS);
     limOfGenerationsWithoutImprovment = QString::number(LIMIT_OF_GENERATIONS_WITHOUT_IMPROVMENT);
     amountOfPopulation = QString::number(AMOUNT_OF_POPULATION);
@@ -56,6 +56,7 @@ void MainWindow::prepare_GUI(){
         ui->checkBox_prepareAll->setChecked(true);
 }
 
+
 void MainWindow::on_pushButton_PrepareAll_clicked()
 {
     setEnabled(false);
@@ -64,9 +65,8 @@ void MainWindow::on_pushButton_PrepareAll_clicked()
 
     for(std::string s: CARD_CLASSES){
 
-     //Prepare cards
-        //QProcess *prepareCards = new QProcess(this);
-        QProcess prepareCards;
+        ui->textBrowser_results->append("Preparing " + QString(s.c_str()) + "...");
+        //Prepare cards
         QString programNamePrepareCards( deckFinderPath + QString("bin/PrepareCards.exe") );
         QStringList argsPrepareCards;
             argsPrepareCards.push_back( QString::number(1) );
@@ -75,27 +75,19 @@ void MainWindow::on_pushButton_PrepareAll_clicked()
                 argsPrepareCards.push_back( QString::number( 1 ) );
             else
                 argsPrepareCards.push_back( QString::number( 0 ) );
-        //prepareCards->start(programNamePrepareCards,argsPrepareCards);
-        //prepareCards->waitForFinished();
-        prepareCards.start(programNamePrepareCards,argsPrepareCards);
-        prepareCards.waitForFinished();
+        QProcess::execute(programNamePrepareCards,argsPrepareCards);
 
         //Match Collector
-        //QProcess *matchCollector = new QProcess(this);
-        QProcess matchCollector;
-        //connect (matchCollector, SIGNAL( finished(int , QProcess::ExitStatus) ), this, SLOT(dataReadyOutput()));
         QString programNameMatchCollector( deckFinderPath + QString("bin/MatchCollector.exe") );
         QStringList argsMatchCollector;
             argsMatchCollector.push_back(QString::number(1));
             argsMatchCollector.push_back( QString(s.c_str()) );
             argsMatchCollector.push_back(maxNumberOfCards);
             argsMatchCollector.push_back(statsResource);
-        //matchCollector->start(programNameMatchCollector,argsMatchCollector);
-        //matchCollector->waitForFinished();
-        matchCollector.start(programNameMatchCollector,argsMatchCollector);
-        matchCollector.waitForFinished();
+        QProcess::execute(programNameMatchCollector,argsMatchCollector);
 
-        ui -> progressBar_findDeck -> setValue( ui -> progressBar_findDeck->value() + 3 );
+        ui -> progressBar_findDeck -> setValue( ui -> progressBar_findDeck->value() + 8 );
+        QCoreApplication::processEvents();
 
         //Prepares parameters to the iterative process
         argsPrepareCards.removeLast();
@@ -104,16 +96,11 @@ void MainWindow::on_pushButton_PrepareAll_clicked()
         for(int c1=2; c1<=MAX_TUPLE_NUMBER; ++c1){
             argsPrepareCards[0] = QString::number(c1);
             argsMatchCollector[0] = QString::number(c1);
-            //prepareCards->start(programNamePrepareCards,argsPrepareCards);
-            //prepareCards->waitForFinished();
-            prepareCards.start(programNamePrepareCards,argsPrepareCards);
-            prepareCards.waitForFinished();
-            //matchCollector->start(programNameMatchCollector,argsMatchCollector);
-            //matchCollector->waitForFinished();
-            matchCollector.start(programNameMatchCollector,argsMatchCollector);
-            matchCollector.waitForFinished();
+            QProcess::execute(programNamePrepareCards,argsPrepareCards);
+            QProcess::execute(programNameMatchCollector,argsMatchCollector);
         }
-        ui -> progressBar_findDeck -> setValue( ui -> progressBar_findDeck->value() + 8 );
+        ui -> progressBar_findDeck -> setValue( ui -> progressBar_findDeck->value() + 3 );
+        QCoreApplication::processEvents();
     }
 
     ui -> progressBar_findDeck -> setValue(100);
@@ -136,13 +123,6 @@ void MainWindow::dataReadyOutput()
                 );
 }
 
-void MainWindow::on_horizontalSlider_deckType_actionTriggered()
-{
-    ui -> label_deckTypes -> setText(deckTypes[ui->horizontalSlider_deckType->sliderPosition()]);
-    p = getDeckTypeValue(ui -> horizontalSlider_deckType -> sliderPosition());
-
-}
-
 void MainWindow::on_pushButton_findDeck_clicked()
 {
     setEnabled(false);
@@ -150,7 +130,8 @@ void MainWindow::on_pushButton_findDeck_clicked()
     if( ui -> checkBox_prepareAll ->isChecked() ){
         ui->progressBar_findDeck->setValue(2);
         //ui->textBrowser_results->clear();
-        ui->textBrowser_results->append("Class: " + ui->comboBox_cardClass->currentText() + ". Synergy: " + ui->label_synergy->text() + ". Deck type: " + ui->label_deckTypes->text() + ".");
+        p = random_p();
+        ui->textBrowser_results->append(ui->label_synergy->text() + " synergy " + ui->comboBox_cardClass->currentText() + " deck with p=" + QString::number(p) + ".");
 
         process = new QProcess(this);
         QString programName(deckFinderPath + "bin/DeckFinder");
@@ -165,6 +146,9 @@ void MainWindow::on_pushButton_findDeck_clicked()
             args.push_back(QString::number(p));
         connect (process, SIGNAL(readyReadStandardOutput()), this, SLOT(processOutput()));
         process->start(programName,args);
+        connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            [=](int, QProcess::ExitStatus){ setEnabled(true); });
+        connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
     }
     else {
         QMessageBox *m = new QMessageBox(this);
@@ -172,7 +156,7 @@ void MainWindow::on_pushButton_findDeck_clicked()
         m->show();
     }
 
-    setEnabled(true);
+    //setEnabled(true);
 }
 
 void MainWindow::processOutput()
@@ -180,11 +164,11 @@ void MainWindow::processOutput()
     QString output(process->readAllStandardOutput());
     if( output.at(0)<='9' && output.at(0)>='0' ){
         int percentage,numgen = output.toInt();
-        if(numgen <= 300){
-            percentage = 75 * numgen / 300;
+        if(numgen < 400){
+            percentage = numgen / 4;
         }
         else {
-            percentage = 75 + 25*(numgen-300)/(numOfGenerations.toInt()-300);
+            percentage = 99;
         }
         ui->progressBar_findDeck->setValue( percentage );
     }
@@ -192,17 +176,6 @@ void MainWindow::processOutput()
         ui->textBrowser_results->append(output);
         ui->progressBar_findDeck->setValue(100);
     }
-}
-
-double MainWindow::getDeckTypeValue(int v){
-    double result;
-    if(v>=0 && v<=3){
-        result = 0.25 + v*0.25;
-    }
-    else{
-        result = 1 + (v-3);
-    }
-    return result;
 }
 
 void MainWindow::on_pushButton_updateMyCollection_clicked()
@@ -213,8 +186,9 @@ void MainWindow::on_pushButton_updateMyCollection_clicked()
     QString programName(deckFinderPath + "bin/My-Hearthstone-Collection");
     connect (process, SIGNAL(readyReadStandardOutput()), this, SLOT(processImportOutput()));
     process->start(programName);
-    setEnabled(true);
-    ui->progressBar_findDeck->setValue(100);
+    connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+        [=](int, QProcess::ExitStatus){ setEnabled(true); ui->progressBar_findDeck->setValue(100); });
+    connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
 }
 
 void MainWindow::processImportOutput()
@@ -226,10 +200,13 @@ void MainWindow::processImportOutput()
     m->show();
 }
 
-void MainWindow::on_pushButton_moreOptions_clicked()
+double MainWindow::random_p()
 {
-    QMessageBox *m = new QMessageBox(this);
-    m->setWindowTitle("Sorry!");
-    m->setText("We are working in this.");
-    m->show();
+    int c = QRandomGenerator::global()->bounded(3);
+    switch(c){
+        case 0 : return 0.05 + QRandomGenerator::global()->bounded(0.95);
+        case 1 : return 1.0 + QRandomGenerator::global()->bounded(1.0);
+        case 2 : return 2.0 + QRandomGenerator::global()->bounded(5.0);
+        default : return 1.0;
+    }
 }
