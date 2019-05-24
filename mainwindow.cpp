@@ -151,12 +151,12 @@ void MainWindow::on_pushButton_findDeck_clicked()
         connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
     }
     else {
-        QMessageBox *m = new QMessageBox(this);
-        m->setText("First prepare the information files.");
-        m->show();
+        QMessageBox m;
+        m.setStyleSheet("background-color: #EEEEEE;");
+        m.setText("First prepare the information files.");
+        m.exec();
+        setEnabled(true);
     }
-
-    //setEnabled(true);
 }
 
 void MainWindow::processOutput()
@@ -175,6 +175,9 @@ void MainWindow::processOutput()
     else{
         ui->textBrowser_results->append(output);
         ui->progressBar_findDeck->setValue(100);
+        QStringList fullDeck = output.split('\n');
+        deckString = fullDeck[fullDeck.size()-2];
+        deckString.chop(1);
     }
 }
 
@@ -194,10 +197,11 @@ void MainWindow::on_pushButton_updateMyCollection_clicked()
 void MainWindow::processImportOutput()
 {
     QString output(process->readAllStandardOutput());
-    QMessageBox *m = new QMessageBox(this);
-    m->setWindowTitle("Error!");
-    m->setText(output);
-    m->show();
+    QMessageBox m;
+    m.setWindowTitle("Error!");
+    m.setStyleSheet("background-color: #EEEEEE;");
+    m.setText(output);
+    m.exec();
 }
 
 double MainWindow::random_p()
@@ -209,4 +213,47 @@ double MainWindow::random_p()
         case 2 : return 2.0 + QRandomGenerator::global()->bounded(5.0);
         default : return 1.0;
     }
+}
+
+void MainWindow::on_pushButton_link_clicked()
+{
+    QDesktopServices::openUrl(QUrl("https://hs.protolambda.com/" + deckString));
+}
+
+void MainWindow::on_pushButton_clipboard_clicked()
+{
+    QApplication::clipboard()->setText(deckString);
+}
+
+void MainWindow::on_pushButton_paypal_clicked()
+{
+    QDesktopServices::openUrl(QUrl("https://www.paypal.me/edyrol"));
+}
+
+void MainWindow::on_actionInstructions_triggered()
+{
+    QMessageBox m;
+    m.setWindowTitle("Instructions");
+    m.setStyleSheet("background-color: #EEEEEE;");
+    m.setText("This app tries to find good decks which are somewhat similar to the decks played in the current meta. "
+                   "In order to use this program, follow these steps.\n\n"
+                   "First decide if you want to limit the results to your collection or not and check the box accordingly.\n\n"
+                   "In case you want to use your collection, open Hearthstone and press the \"Update My Collection\" button.\n\n"
+                   "Then push the \"Prepare All\" button to process the data. After this the \"Use My Collection\" box makes no difference.\n\n"
+                   "Choose a Class and a Synergy level and press the \"Find me a good deck!\" button to start.\n\n"
+                   "You can copy the deck code to the clipboard to export it to Hearthstone or view the deck online.\n\n"
+                   "Warnig: We expect High Synergy is kind of slow but should give better decks. We expect Low Synergy to produce terrible decks. "
+                   "Sometimes the deck produced will be garbage, please use your brain before playing.");
+    m.exec();
+}
+
+void MainWindow::on_actionAbout_triggered()
+{
+    QMessageBox m;
+    m.setWindowTitle("About");
+    m.setStyleSheet("background-color: #EEEEEE;");
+    m.setText("This software was developed by a mathematics student and his advisor as part of a MSc project in UNAM. "
+                   "It looks at the current meta and tries to construct decent decks to play with. "
+                   "It can restrict the results to the users collection so it may be useful for people who have a limited collection.");
+    m.exec();
 }

@@ -8,6 +8,9 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QRandomGenerator>
+#include <QClipboard>
+#include <QDesktopServices>
+#include <QUrl>
 
 #include "defaultparameters.h"
 #include "filemanagment.h"
@@ -31,11 +34,16 @@ private slots:
     //extra slots
     void processOutput();
     void dataReadyOutput();
-
     void on_pushButton_findDeck_clicked();
-
     void on_pushButton_updateMyCollection_clicked();
     void processImportOutput();
+    void on_pushButton_clipboard_clicked();
+    void on_pushButton_link_clicked();
+    void on_pushButton_paypal_clicked();
+
+    void on_actionInstructions_triggered();
+
+    void on_actionAbout_triggered();
 
 private:
     //variables
@@ -57,11 +65,12 @@ private:
     //process
     QProcess *process;
 
+    QString deckString = "";
+
     //methods
     void prepare_GUI();
     bool is_data_ready();
     double random_p();
-    void PrepareAll(std::string, int, int);
 
     Ui::MainWindow *ui;
 };
