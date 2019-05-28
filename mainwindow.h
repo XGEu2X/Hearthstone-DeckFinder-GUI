@@ -71,6 +71,7 @@ private:
     void prepare_GUI();
     bool is_data_ready();
     double random_p();
+    void search_buttons_enabled(bool);
 
     Ui::MainWindow *ui;
 };

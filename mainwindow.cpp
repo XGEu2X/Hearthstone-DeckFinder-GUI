@@ -59,7 +59,7 @@ void MainWindow::prepare_GUI(){
 
 void MainWindow::on_pushButton_PrepareAll_clicked()
 {
-    setEnabled(false);
+    search_buttons_enabled(false);
 
     ui -> progressBar_findDeck -> setValue(1);
 
@@ -105,7 +105,7 @@ void MainWindow::on_pushButton_PrepareAll_clicked()
 
     ui -> progressBar_findDeck -> setValue(100);
     ui->checkBox_prepareAll->setChecked(true);
-    setEnabled(true);
+    search_buttons_enabled(true);
 }
 
 
@@ -125,7 +125,7 @@ void MainWindow::dataReadyOutput()
 
 void MainWindow::on_pushButton_findDeck_clicked()
 {
-    setEnabled(false);
+    search_buttons_enabled(false);
 
     if( ui -> checkBox_prepareAll ->isChecked() ){
         ui->progressBar_findDeck->setValue(2);
@@ -147,7 +147,7 @@ void MainWindow::on_pushButton_findDeck_clicked()
         connect (process, SIGNAL(readyReadStandardOutput()), this, SLOT(processOutput()));
         process->start(programName,args);
         connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            [=](int, QProcess::ExitStatus){ setEnabled(true); });
+            [=](int, QProcess::ExitStatus){ search_buttons_enabled(true); });
         connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
     }
     else {
@@ -155,7 +155,7 @@ void MainWindow::on_pushButton_findDeck_clicked()
         m.setStyleSheet("background-color: #EEEEEE;");
         m.setText("First prepare the information files.");
         m.exec();
-        setEnabled(true);
+        search_buttons_enabled(true);
     }
 }
 
@@ -183,14 +183,14 @@ void MainWindow::processOutput()
 
 void MainWindow::on_pushButton_updateMyCollection_clicked()
 {
-    setEnabled(false);
+    search_buttons_enabled(false);
     ui->progressBar_findDeck->setValue(50);
     process = new QProcess(this);
     QString programName(deckFinderPath + "bin/My-Hearthstone-Collection");
     connect (process, SIGNAL(readyReadStandardOutput()), this, SLOT(processImportOutput()));
     process->start(programName);
     connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-        [=](int, QProcess::ExitStatus){ setEnabled(true); ui->progressBar_findDeck->setValue(100); });
+        [=](int, QProcess::ExitStatus){ search_buttons_enabled(true); ui->progressBar_findDeck->setValue(100); });
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
 }
 
@@ -236,14 +236,14 @@ void MainWindow::on_actionInstructions_triggered()
     m.setWindowTitle("Instructions");
     m.setStyleSheet("background-color: #EEEEEE;");
     m.setText("This app tries to find good decks which are somewhat similar to the decks played in the current meta. "
-                   "In order to use this program, follow these steps.\n\n"
-                   "First decide if you want to limit the results to your collection or not and check the box accordingly.\n\n"
-                   "In case you want to use your collection, open Hearthstone and press the \"Update My Collection\" button.\n\n"
-                   "Then push the \"Prepare All\" button to process the data. After this the \"Use My Collection\" box makes no difference.\n\n"
-                   "Choose a Class and a Synergy level and press the \"Find me a good deck!\" button to start.\n\n"
-                   "You can copy the deck code to the clipboard to export it to Hearthstone or view the deck online.\n\n"
-                   "Warnig: We expect High Synergy is kind of slow but should give better decks. We expect Low Synergy to produce terrible decks. "
-                   "Sometimes the deck produced will be garbage, please use your brain before playing.");
+              "In order to use this program, follow these steps.\n\n"
+              "First decide if you want to limit the results to your collection or not and check the box accordingly.\n\n"
+              "In case you want to use your collection, open Hearthstone and press the \"Update My Collection\" button.\n\n"
+              "Then push the \"Prepare All\" button to process the data. After this the \"Use My Collection\" box makes no difference.\n\n"
+              "Choose a Class and a Synergy level and press the \"Find me a good deck!\" button to start.\n\n"
+              "You can copy the deck code to the clipboard to export it to Hearthstone or view the deck online.\n\n"
+              "Warning: We expect High Synergy is kind of slow but should give better decks. We expect Low Synergy to produce terrible decks. "
+              "Sometimes the deck produced will be garbage, please use your brain before playing.");
     m.exec();
 }
 
@@ -253,7 +253,14 @@ void MainWindow::on_actionAbout_triggered()
     m.setWindowTitle("About");
     m.setStyleSheet("background-color: #EEEEEE;");
     m.setText("This software was developed by a mathematics student and his advisor as part of a MSc project in UNAM. "
-                   "It looks at the current meta and tries to construct decent decks to play with. "
-                   "It can restrict the results to the users collection so it may be useful for people who have a limited collection.");
+              "It looks at the current meta and tries to construct decent decks to play with. "
+              "It can restrict the results to the users collection so it may be useful for people who have a limited collection, although it probably won't work if they have few new cards.");
     m.exec();
+}
+
+void MainWindow::search_buttons_enabled(bool b)
+{
+    ui->pushButton_findDeck->setEnabled(b);
+    ui->pushButton_updateMyCollection->setEnabled(b);
+    ui->pushButton_PrepareAll->setEnabled(b);
 }

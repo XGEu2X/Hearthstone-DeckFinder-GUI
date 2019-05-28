@@ -15,7 +15,7 @@ const int MAX_TUPLE_NUMBER = 4;
 
 const string DECK_FINDER_PATH = "";
 
-const int MAX_NUMBER_OF_CARDS = 55;
+const int MAX_NUMBER_OF_CARDS = 45;
 const string STATS_RESOURCE = "HSReplay";
 const double MIN_MATCH_VALID_RATIO = 0.1;
 
