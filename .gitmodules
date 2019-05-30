@@ -1,6 +1,6 @@
 [submodule "DeckFinder"]
 	path = DeckFinder
-	url = https://github.com/edyrol/Hearthstone-DeckFinder.git
+	url = https://github.com/XGEu2X/Hearthstone-DeckFinder.git
 [submodule "MyCollection"]
 	path = MyCollection
 	url = https://github.com/edyrol/My-Hearthstone-Collection.git
